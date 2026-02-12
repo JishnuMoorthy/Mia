@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Login</title></head>
+<body style="font-family: Arial, sans-serif; background:#f7f7f7;">
+  <div style="max-width:420px;margin:60px auto;background:#fff;padding:20px;border:1px solid #e5e7eb;">
+    <h2>Login</h2>
+    {% if error %}<div style="color:#b91c1c;">{{ error }}</div>{% endif %}
+    <form method="post">
+      <label>Phone</label>
+      <input type="text" name="phone" required />
+      <label>Password</label>
+      <input type="password" name="password" required />
+      <div style="margin-top:12px;">
+        <button type="submit">Login</button>
+      </div>
+    </form>
+    <p><a href="/reset">Reset password</a></p>
+  </div>
+</body>
+</html>

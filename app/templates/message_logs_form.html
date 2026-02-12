@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Message Log</h2>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post">
+  <label>Recipient Phone</label>
+  <input type="text" name="recipient_phone" required />
+  <label>Template Name</label>
+  <input type="text" name="template_name" required />
+  <label>Payload (JSON)</label>
+  <textarea name="payload" required>{"key": "value"}</textarea>
+  <label>Status</label>
+  <select name="status">
+    {% for s in statuses %}
+      <option value="{{ s.value }}">{{ s.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Provider Message ID</label>
+  <input type="text" name="provider_message_id" />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

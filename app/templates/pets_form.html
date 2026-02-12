@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if pet %}Edit Pet{% else %}New Pet{% endif %}</h2>
+<form method="post">
+  <h3>Pet Demographics</h3>
+  <label>Pet Parent</label>
+  <select name="pet_parent_id" required>
+    {% for parent in parents %}
+      <option value="{{ parent.id }}" {% if pet and pet.pet_parent_id == parent.id %}selected{% endif %}>{{ parent.name }}</option>
+    {% endfor %}
+  </select>
+  <label>Name</label>
+  <input type="text" name="name" value="{{ pet.name if pet }}" required />
+  <label>Species</label>
+  <select name="species" required>
+    {% for s in species_options %}
+      <option value="{{ s }}" {% if pet and pet.species == s %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <label>Breed</label>
+  <input type="text" name="breed" value="{{ pet.breed if pet }}" />
+  <label>Gender</label>
+  <select name="gender">
+    {% for gender in genders %}
+      <option value="{{ gender.value }}" {% if pet and pet.gender == gender %}selected{% endif %}>{{ gender.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Date of Birth</label>
+  <input type="date" name="date_of_birth" value="{{ pet.date_of_birth if pet }}" />
+  <label>Registration / Microchip ID</label>
+  <input type="text" name="registration_number" value="{{ pet.registration_number if pet }}" />
+  <label>Sterilization Status</label>
+  <select name="sterilization_status">
+    <option value=""></option>
+    {% for s in sterilization_options %}
+      <option value="{{ s }}" {% if pet and pet.sterilization_status == s %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <label>Alerts</label>
+  <textarea name="alerts">{{ pet.alerts if pet }}</textarea>
+
+  {% if parent %}
+    <h3>Owner Context (Read-only)</h3>
+    <div><strong>Primary Name:</strong> {{ parent.name }}</div>
+    <div><strong>Primary Phone:</strong> {{ parent.phone }}</div>
+    <div><strong>Emergency Contact:</strong> {{ contact_blob.emergency_contact_name if contact_blob }} {{ contact_blob.emergency_contact_phone if contact_blob }}</div>
+  {% endif %}
+
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

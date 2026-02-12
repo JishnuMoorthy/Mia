@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Users</h2>
+<div class="top-actions"><a class="btn" href="/users/new">New User</a></div>
+<table>
+  <tr><th>Name</th><th>Phone</th><th>Role</th><th>Active</th><th>Actions</th></tr>
+  {% for user in users %}
+  <tr>
+    <td>{{ user.name }}</td>
+    <td>{{ user.phone }}</td>
+    <td>{{ user.role }}</td>
+    <td>{{ 'Yes' if user.is_active else 'No' }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/users/{{ user.id }}/edit">Edit</a>
+      <form method="post" action="/users/{{ user.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

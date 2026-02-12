@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Payments</h2>
+<div class="top-actions"><a class="btn" href="/payments/new">New Payment</a></div>
+<table>
+  <tr><th>Invoice #</th><th>Amount</th><th>Method</th><th>Status</th><th>Reference</th><th>Actions</th></tr>
+  {% for payment in payments %}
+  <tr>
+    <td>{{ invoice_map[payment.invoice_id].invoice_number if invoice_map.get(payment.invoice_id) }}</td>
+    <td>{{ payment.amount }}</td>
+    <td>{{ payment.payment_method }}</td>
+    <td>{{ payment.status }}</td>
+    <td>{{ payment.reference_id }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/payments/{{ payment.id }}/edit">Edit</a>
+      <form method="post" action="/payments/{{ payment.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

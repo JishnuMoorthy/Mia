@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if appointment %}Edit Appointment{% else %}New Appointment{% endif %}</h2>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post">
+  <label>Pet</label>
+  <select name="pet_id" required>
+    {% for pet in pets %}
+      <option value="{{ pet.id }}" {% if appointment and appointment.pet_id == pet.id %}selected{% endif %}>{{ pet.name }}</option>
+    {% endfor %}
+  </select>
+  <label>Vet</label>
+  <select name="vet_id" required>
+    {% for vet in vets %}
+      <option value="{{ vet.id }}" {% if appointment and appointment.vet_id == vet.id %}selected{% endif %}>{{ vet.name }}</option>
+    {% endfor %}
+  </select>
+  <label>Date</label>
+  <input type="date" name="appointment_date" value="{{ appointment.appointment_date if appointment }}" required />
+  <label>Start Time</label>
+  <input type="time" name="start_time" value="{{ appointment.start_time if appointment }}" required />
+  <label>End Time</label>
+  <input type="time" name="end_time" value="{{ appointment.end_time if appointment }}" required />
+  <label>Status</label>
+  <select name="status">
+    {% for status in statuses %}
+      <option value="{{ status.value }}" {% if appointment and appointment.status == status %}selected{% endif %}>{{ status.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Notes</label>
+  <textarea name="notes">{{ appointment.notes if appointment }}</textarea>
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if user %}Edit User{% else %}New User{% endif %}</h2>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post">
+  <label>Name</label>
+  <input type="text" name="name" value="{{ user.name if user }}" required />
+  <label>Phone</label>
+  <input type="text" name="phone" value="{{ user.phone if user }}" required />
+  <label>Email</label>
+  <input type="text" name="email" value="{{ user.email if user }}" />
+  <label>Role</label>
+  <select name="role">
+    {% for role in roles %}
+      <option value="{{ role.value }}" {% if user and user.role == role %}selected{% endif %}>{{ role.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Active</label>
+  <input type="checkbox" name="is_active" {% if user and user.is_active %}checked{% endif %} />
+  <label>{% if user %}New Password (optional){% else %}Password{% endif %}</label>
+  <input type="password" name="password" {% if not user %}required{% endif %} />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

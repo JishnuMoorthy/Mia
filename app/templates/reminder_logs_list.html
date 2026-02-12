@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Reminder Logs</h2>
+<div class="top-actions"><a class="btn" href="/reminder-logs/new">New Reminder Log</a></div>
+<table>
+  <tr><th>Entity Type</th><th>Entity ID</th><th>Status</th><th>Sent At</th></tr>
+  {% for log in logs %}
+  <tr>
+    <td>{{ log.entity_type }}</td>
+    <td>{{ log.entity_id }}</td>
+    <td>{{ log.status }}</td>
+    <td>{{ log.sent_at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

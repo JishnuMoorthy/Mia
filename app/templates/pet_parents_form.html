@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if pet_parent %}Edit Pet Parent{% else %}New Pet Parent{% endif %}</h2>
+<form method="post">
+  <label>Full Name</label>
+  <input type="text" name="name" value="{{ pet_parent.name if pet_parent }}" required />
+  <label>Primary Phone</label>
+  <input type="text" name="phone" value="{{ pet_parent.phone if pet_parent }}" required />
+  <label>Email</label>
+  <input type="text" name="email" value="{{ pet_parent.email if pet_parent }}" />
+  <label>WhatsApp Number</label>
+  <input type="text" name="whatsapp_number" id="whatsapp_number" value="{{ whatsapp_number if whatsapp_number }}" />
+  <label>
+    <input type="checkbox" name="whatsapp_same" id="whatsapp_same" />
+    WhatsApp number same as primary phone
+  </label>
+  <label>Emergency Contact Name</label>
+  <input type="text" name="emergency_contact_name" value="{{ emergency_contact_name if emergency_contact_name }}" />
+  <label>Emergency Contact Phone</label>
+  <input type="text" name="emergency_contact_phone" value="{{ emergency_contact_phone if emergency_contact_phone }}" />
+  <label>Address</label>
+  <input type="text" name="address" value="{{ pet_parent.address if pet_parent }}" />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+<script>
+  const primaryPhone = document.querySelector('input[name="phone"]');
+  const whatsappInput = document.getElementById('whatsapp_number');
+  const whatsappSame = document.getElementById('whatsapp_same');
+
+  function syncWhatsapp() {
+    if (whatsappSame.checked) {
+      whatsappInput.value = primaryPhone.value;
+      whatsappInput.readOnly = true;
+    } else {
+      whatsappInput.readOnly = false;
+    }
+  }
+
+  primaryPhone.addEventListener('input', syncWhatsapp);
+  whatsappSame.addEventListener('change', syncWhatsapp);
+  if (whatsappInput.value && whatsappInput.value === primaryPhone.value) {
+    whatsappSame.checked = true;
+  }
+  syncWhatsapp();
+</script>
+{% endblock %}

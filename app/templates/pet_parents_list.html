@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Pet Parents</h2>
+<div class="top-actions"><a class="btn" href="/pet-parents/new">New Pet Parent</a></div>
+<table>
+  <tr><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr>
+  {% for parent in pet_parents %}
+  <tr>
+    <td>{{ parent.name }}</td>
+    <td>{{ parent.phone }}</td>
+    <td>{{ parent.email }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/pet-parents/{{ parent.id }}/edit">Edit</a>
+      <form method="post" action="/pet-parents/{{ parent.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

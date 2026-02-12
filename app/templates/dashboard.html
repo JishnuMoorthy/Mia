@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dashboard</h2>
+<table>
+  <tr><th>Metric</th><th>Count</th></tr>
+  <tr><td>Pets</td><td>{{ pets_count }}</td></tr>
+  <tr><td>Appointments Today</td><td>{{ appointments_today }}</td></tr>
+  <tr><td>Pending Invoices</td><td>{{ pending_invoices }}</td></tr>
+  <tr><td>Low Stock Items</td><td>{{ low_stock_items }}</td></tr>
+</table>
+{% endblock %}

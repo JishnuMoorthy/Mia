@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if clinic %}Edit Clinic{% else %}New Clinic{% endif %}</h2>
+<form method="post">
+  <label>Name</label>
+  <input type="text" name="name" value="{{ clinic.name if clinic }}" required />
+  <label>Phone</label>
+  <input type="text" name="phone" value="{{ clinic.phone if clinic }}" required />
+  <label>Address</label>
+  <input type="text" name="address" value="{{ clinic.address if clinic }}" />
+  <label>City</label>
+  <input type="text" name="city" value="{{ clinic.city if clinic }}" />
+  <label>State</label>
+  <input type="text" name="state" value="{{ clinic.state if clinic }}" />
+  <label>Pincode</label>
+  <input type="text" name="pincode" value="{{ clinic.pincode if clinic }}" />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

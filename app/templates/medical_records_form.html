@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if record %}Edit Record{% else %}New Record{% endif %}</h2>
+<form method="post">
+  <label>Pet</label>
+  <select name="pet_id" required>
+    {% for pet in pets %}
+      <option value="{{ pet.id }}" {% if record and record.pet_id == pet.id %}selected{% endif %}>{{ pet.name }}</option>
+    {% endfor %}
+  </select>
+  <label>Vet</label>
+  <select name="vet_id" required>
+    {% for vet in vets %}
+      <option value="{{ vet.id }}" {% if record and record.vet_id == vet.id %}selected{% endif %}>{{ vet.name }}</option>
+    {% endfor %}
+  </select>
+  <label>Visit Date</label>
+  <input type="date" name="visit_date" value="{{ record.visit_date if record }}" required />
+  <label>Symptoms</label>
+  <textarea name="symptoms">{{ record.symptoms if record }}</textarea>
+  <label>Diagnosis</label>
+  <textarea name="diagnosis">{{ record.diagnosis if record }}</textarea>
+  <label>Prescription</label>
+  <textarea name="prescription">{{ record.prescription if record }}</textarea>
+  <label>Follow-up Date</label>
+  <input type="date" name="follow_up_date" value="{{ record.follow_up_date if record }}" />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

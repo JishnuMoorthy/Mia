@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if item %}Edit Item{% else %}New Item{% endif %}</h2>
+<form method="post">
+  <label>Name</label>
+  <input type="text" name="name" value="{{ item.name if item }}" required />
+  <label>Quantity</label>
+  <input type="number" name="quantity" value="{{ item.quantity if item }}" required />
+  <label>Expiry Date</label>
+  <input type="date" name="expiry_date" value="{{ item.expiry_date if item }}" />
+  <label>Low Stock Threshold</label>
+  <input type="number" name="low_stock_threshold" value="{{ item.low_stock_threshold if item }}" required />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

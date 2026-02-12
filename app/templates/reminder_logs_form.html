@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>New Reminder Log</h2>
+<form method="post">
+  <label>Entity Type</label>
+  <select name="entity_type">
+    {% for et in entity_types %}
+      <option value="{{ et.value }}">{{ et.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Entity ID</label>
+  <input type="text" name="entity_id" required />
+  <label>Channel</label>
+  <select name="channel">
+    {% for c in channels %}
+      <option value="{{ c.value }}">{{ c.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Status</label>
+  <select name="status">
+    {% for s in statuses %}
+      <option value="{{ s.value }}">{{ s.value }}</option>
+    {% endfor %}
+  </select>
+  <label>Failure Reason</label>
+  <input type="text" name="failure_reason" />
+  <label>Sent At (ISO datetime)</label>
+  <input type="text" name="sent_at" placeholder="2026-02-04T10:00:00" />
+  <div style="margin-top:12px;">
+    <button type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

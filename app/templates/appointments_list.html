@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Appointments</h2>
+<div id="calendar"></div>
+
+<div id="appt-modal" style="display:none; position:fixed; inset:0; z-index:9999;">
+  <div id="appt-backdrop"></div>
+  <div id="appt-panel">
+    <h3 id="appt-modal-title">New Appointment</h3>
+    <form id="appt-form" method="post">
+      {% if appt_error %}
+        <div style="color:#b91c1c; margin-bottom:8px;">{{ appt_error }}</div>
+      {% endif %}
+      <label>Pet</label>
+      <input type="search" id="appt-pet-search" list="pet-options" placeholder="Search pet..." autocomplete="off" />
+      <datalist id="pet-options">
+        {% for pet in pets %}
+          <option value="{{ pet.name }}" data-id="{{ pet.id }}"></option>
+        {% endfor %}
+      </datalist>
+      <input type="hidden" name="pet_id" id="appt-pet" required />
+      <label>Vet</label>
+      <input type="search" id="appt-vet-search" list="vet-options" placeholder="Search vet..." autocomplete="off" />
+      <datalist id="vet-options">
+        {% for vet in vets %}
+          <option value="{{ vet.name }}" data-id="{{ vet.id }}"></option>
+        {% endfor %}
+      </datalist>
+      <input type="hidden" name="vet_id" id="appt-vet" required />
+      <label>Procedure / Visit Type</label>
+      <input type="search" id="procedure-type" name="procedure_type" list="procedure-options" placeholder="Search or type..." autocomplete="off" />
+      <datalist id="procedure-options">
+        <option value="Consultation"></option>
+        <option value="Follow-up Consultation"></option>
+        <option value="Vaccination"></option>
+        <option value="Surgery"></option>
+        <option value="Spay / Neuter"></option>
+        <option value="Diagnostic Test"></option>
+        <option value="Grooming"></option>
+        <option value="Emergency Visit"></option>
+        <option value="Health Check"></option>
+        <option value="Deworming"></option>
+        <option value="Other"></option>
+      </datalist>
+      <label>Date</label>
+      <input type="date" name="appointment_date" id="appt-date" required />
+      <label>Start Time</label>
+      <input type="time" name="start_time" id="appt-start" required />
+      <label>End Time</label>
+      <input type="time" name="end_time" id="appt-end" required />
+      <input type="hidden" name="status" id="appt-status" value="scheduled" />
+      <label>Notes</label>
+      <textarea name="notes" id="appt-notes"></textarea>
+      <input type="hidden" name="allow_overlap" id="allow_overlap" value="" />
+      <input type="hidden" name="confirm_override" id="confirm_override" value="" />
+      <div style="margin-top:12px; display:flex; gap:8px; justify-content:space-between;">
+        <div style="display:flex; gap:8px;">
+          <button type="submit">Save</button>
+          <button type="button" id="appt-cancel">Cancel</button>
+        </div>
+        <button type="button" id="appt-delete" style="display:none; background:#b91c1c; color:#fff;">Delete appointment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<style>
+  #calendar { background:#fff; padding:12px; border-radius:8px; border:1px solid #e5e7eb; }
+  .fc { z-index: 1; }
+  #appt-modal h3 { margin-top: 0; }
+  #appt-modal label { font-weight: 600; }
+  #appt-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+  }
+  #appt-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 420px;
+    background: #fff;
+    padding: 20px;
+    box-shadow: -12px 0 30px rgba(0,0,0,0.18);
+    overflow-y: auto;
+  }
+  #appt-notes {
+    max-height: 120px;
+    overflow: auto;
+    resize: none;
+  }
+  #overlap-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(15, 23, 42, 0.45);
+    align-items: center;
+    justify-content: center;
+  }
+  #overlap-card {
+    background: #fff;
+    max-width: 420px;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  @media (max-width: 720px) {
+    #appt-panel { width: 100%; }
+  }
+</style>
+<script>
+  const appointments = [
+    {% for appt in appointments %}
+    {
+      id: "{{ appt.id }}",
+      title: "{{ (pet_map[appt.pet_id].name if pet_map.get(appt.pet_id) else 'Pet') }} - {{ (vet_map[appt.vet_id].name if vet_map.get(appt.vet_id) else 'Vet') }}{% if appt.procedure_type %} · {{ appt.procedure_type }}{% endif %}",
+      start: "{{ appt.appointment_date }}T{{ appt.start_time }}",
+      end: "{{ appt.appointment_date }}T{{ appt.end_time }}",
+      extendedProps: {
+        pet_id: "{{ appt.pet_id }}",
+        vet_id: "{{ appt.vet_id }}",
+        pet_name: "{{ (pet_map[appt.pet_id].name if pet_map.get(appt.pet_id) else 'Pet') }}",
+        vet_name: "{{ (vet_map[appt.vet_id].name if vet_map.get(appt.vet_id) else 'Vet') }}",
+        procedure_type: {{ appt.procedure_type|tojson }},
+        status: "{{ appt.status.value if appt.status else 'scheduled' }}",
+        notes: {{ appt.notes|tojson }}
+      }
+    },
+    {% endfor %}
+  ];
+
+  const modal = document.getElementById("appt-modal");
+  const form = document.getElementById("appt-form");
+  const titleEl = document.getElementById("appt-modal-title");
+  const petEl = document.getElementById("appt-pet");
+  const vetEl = document.getElementById("appt-vet");
+  const petSearchEl = document.getElementById("appt-pet-search");
+  const vetSearchEl = document.getElementById("appt-vet-search");
+  const procedureEl = document.getElementById("procedure-type");
+  const dateEl = document.getElementById("appt-date");
+  const startEl = document.getElementById("appt-start");
+  const endEl = document.getElementById("appt-end");
+  const statusEl = document.getElementById("appt-status");
+  const notesEl = document.getElementById("appt-notes");
+  const deleteBtn = document.getElementById("appt-delete");
+  const allowOverlapEl = document.getElementById("allow_overlap");
+  const confirmOverrideEl = document.getElementById("confirm_override");
+
+  function openModal() {
+    modal.style.display = "block";
+  }
+  function closeModal() {
+    modal.style.display = "none";
+  }
+
+  document.getElementById("appt-cancel").addEventListener("click", closeModal);
+  document.getElementById("appt-backdrop").addEventListener("click", closeModal);
+
+  function setFormForCreate(dateStr, startStr, endStr) {
+    titleEl.textContent = "New Appointment";
+    form.action = "/appointments/new";
+    deleteBtn.style.display = "none";
+    confirmOverrideEl.value = "";
+    allowOverlapEl.value = "";
+    dateEl.value = dateStr;
+    startEl.value = startStr || "09:00";
+    endEl.value = endStr || "09:30";
+    statusEl.value = "scheduled";
+    notesEl.value = "";
+    petSearchEl.value = "";
+    vetSearchEl.value = "";
+    petEl.value = "";
+    vetEl.value = "";
+    procedureEl.value = "";
+    openModal();
+  }
+
+  function formatDateLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatTimeLocal(date) {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+
+  function addMinutes(date, minutes) {
+    return new Date(date.getTime() + minutes * 60000);
+  }
+
+  function setFormForEdit(event) {
+    titleEl.textContent = "Edit Appointment";
+    form.action = `/appointments/${event.id}/edit`;
+    deleteBtn.style.display = "inline-block";
+    confirmOverrideEl.value = "";
+    allowOverlapEl.value = "";
+    deleteBtn.onclick = () => {
+      if (!confirm("Delete this appointment?")) return;
+      const delForm = document.createElement("form");
+      delForm.method = "post";
+      delForm.action = `/appointments/${event.id}/delete`;
+      document.body.appendChild(delForm);
+      delForm.submit();
+    };
+    const start = event.start;
+    const end = event.end || addMinutes(start, 30);
+    dateEl.value = formatDateLocal(start);
+    startEl.value = formatTimeLocal(start);
+    endEl.value = formatTimeLocal(end);
+    petEl.value = event.extendedProps.pet_id;
+    vetEl.value = event.extendedProps.vet_id;
+    petSearchEl.value = event.extendedProps.pet_name || "";
+    vetSearchEl.value = event.extendedProps.vet_name || "";
+    procedureEl.value = event.extendedProps.procedure_type || "";
+    statusEl.value = event.extendedProps.status || "scheduled";
+    notesEl.value = event.extendedProps.notes || "";
+    openModal();
+  }
+
+  const calendarEl = document.getElementById('calendar');
+  const savedView = localStorage.getItem("appt_calendar_view") || "timeGridWeek";
+  const savedDate = localStorage.getItem("appt_calendar_date");
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: savedView,
+    initialDate: savedDate || undefined,
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'timeGridDay,timeGridWeek,dayGridMonth'
+    },
+    selectable: true,
+    allDaySlot: false,
+    eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
+    eventContent: function(arg) {
+      const timeText = arg.timeText ? `${arg.timeText} ` : "";
+      const title = arg.event.title || "";
+      return { html: `<div><strong>${timeText}</strong>${title}</div>` };
+    },
+    events: appointments,
+    datesSet: function(info) {
+      localStorage.setItem("appt_calendar_view", info.view.type);
+      localStorage.setItem("appt_calendar_date", info.startStr.slice(0, 10));
+    },
+    select: function(info) {
+      const dateStr = info.startStr.slice(0, 10);
+      const startStr = info.startStr.slice(11, 16);
+      const endStr = info.endStr ? info.endStr.slice(11, 16) : "";
+      setFormForCreate(dateStr, startStr, endStr);
+    },
+    dateClick: function(info) {
+      if (info.allDay) {
+        setFormForCreate(info.dateStr, "09:00", "09:30");
+      }
+    },
+    eventClick: function(info) {
+      setFormForEdit(info.event);
+    }
+  });
+  calendar.render();
+  const overlapModal = document.getElementById("overlap-modal");
+  const overlapSummary = document.getElementById("overlap-summary");
+  const overlapList = document.getElementById("overlap-list");
+  const overlapChange = document.getElementById("overlap-change");
+  const overlapAllow = document.getElementById("overlap-allow");
+  const overlapCancel = document.getElementById("overlap-cancel");
+
+  function openOverlapModal() {
+    overlapModal.style.display = "flex";
+  }
+  function closeOverlapModal() {
+    overlapModal.style.display = "none";
+  }
+  function setOverlapContent(payload) {
+    const first = payload.conflicts[0];
+    overlapSummary.textContent = `${first.vet_name} has a conflict ${first.start_time}–${first.end_time}`;
+    overlapList.innerHTML = "";
+    payload.conflicts.forEach((c) => {
+      const li = document.createElement("li");
+      li.textContent = `${c.pet_name}: ${c.start_time}–${c.end_time}`;
+      overlapList.appendChild(li);
+    });
+  }
+
+  overlapChange.addEventListener("click", () => {
+    closeOverlapModal();
+  });
+  overlapCancel.addEventListener("click", () => {
+    closeOverlapModal();
+  });
+  overlapAllow.addEventListener("click", () => {
+    const ok = confirm("This will create an overlapping appointment. Continue?");
+    if (!ok) return;
+    allowOverlapEl.value = "yes";
+    confirmOverrideEl.value = "yes";
+    submitForm(true);
+  });
+
+  async function submitForm(isOverride = false) {
+    if (!isOverride) {
+      allowOverlapEl.value = "";
+      confirmOverrideEl.value = "";
+    }
+    const formData = new FormData(form);
+    const response = await fetch(form.action, {
+      method: "POST",
+      body: formData,
+      headers: { "X-Requested-With": "fetch" },
+    });
+    if (response.status === 409) {
+      try {
+        const payload = await response.json();
+        if (payload.error_code === "OVERLAP_DETECTED") {
+          setOverlapContent(payload);
+          openOverlapModal();
+          return;
+        }
+        if (payload.error_code === "OVERRIDE_CONFIRMATION_REQUIRED") {
+          openOverlapModal();
+          return;
+        }
+      } catch (e) {
+        alert("Appointment overlap detected. Please adjust the time.");
+        return;
+      }
+    }
+    if (response.redirected) {
+      window.location.href = response.url;
+      return;
+    }
+    if (response.ok) {
+      window.location.reload();
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!petEl.value || !vetEl.value) {
+      alert("Please select a pet and a vet from the list.");
+      return;
+    }
+    submitForm(false);
+  });
+
+  function bindSearch(searchEl, hiddenEl, optionsId) {
+    const options = document.getElementById(optionsId).options;
+    const nameToId = {};
+    for (const opt of options) {
+      nameToId[opt.value] = opt.dataset.id || "";
+    }
+    searchEl.addEventListener("input", () => {
+      hiddenEl.value = nameToId[searchEl.value] || "";
+    });
+  }
+
+  bindSearch(petSearchEl, petEl, "pet-options");
+  bindSearch(vetSearchEl, vetEl, "vet-options");
+</script>
+
+<div id="overlap-modal">
+  <div id="overlap-card">
+    <h4 style="margin:0 0 8px 0;">Overlap detected</h4>
+    <div id="overlap-summary" style="margin-bottom:8px;"></div>
+    <ul id="overlap-list" style="margin:0 0 12px 18px;"></ul>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button type="button" id="overlap-change">Change time</button>
+      <button type="button" id="overlap-allow" style="background:#b91c1c; color:#fff;">Override &amp; Save</button>
+      <button type="button" id="overlap-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

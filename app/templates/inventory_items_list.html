@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Inventory Items</h2>
+<div class="top-actions"><a class="btn" href="/inventory-items/new">New Item</a></div>
+<table>
+  <tr><th>Name</th><th>Quantity</th><th>Expiry</th><th>Low Stock Threshold</th><th>Actions</th></tr>
+  {% for item in items %}
+  <tr>
+    <td>{{ item.name }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ item.expiry_date }}</td>
+    <td>{{ item.low_stock_threshold }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/inventory-items/{{ item.id }}/edit">Edit</a>
+      <form method="post" action="/inventory-items/{{ item.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

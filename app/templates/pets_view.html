@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Pet Profile</h2>
+
+<div style="display:flex; gap:16px; flex-wrap:wrap;">
+  <div style="flex:1 1 320px; background:#fff; padding:16px; border:1px solid #e5e7eb;">
+    <h3>Pet Demographics</h3>
+    <div><strong>Name:</strong> {{ pet.name }}</div>
+    <div><strong>Species:</strong> {{ pet.species }}</div>
+    <div><strong>Breed:</strong> {{ pet.breed }}</div>
+    <div><strong>Gender:</strong> {{ pet.gender }}</div>
+    <div><strong>Date of Birth:</strong> {{ pet.date_of_birth }}</div>
+    <div><strong>Registration / Microchip ID:</strong> {{ pet.registration_number }}</div>
+    <div><strong>Sterilization Status:</strong> {{ pet.sterilization_status }}</div>
+    <div><strong>Alerts:</strong> {{ pet.alerts }}</div>
+  </div>
+
+  <div style="flex:1 1 320px; background:#fff; padding:16px; border:1px solid #e5e7eb;">
+    <h3>Owner Context (Read-only)</h3>
+    {% if parent %}
+      <div><strong>Primary Name:</strong> {{ parent.name }}</div>
+      <div><strong>Primary Phone:</strong> {{ parent.phone }}</div>
+      <div><strong>Emergency Contact:</strong> {{ contact_blob.emergency_contact_name if contact_blob }} {{ contact_blob.emergency_contact_phone if contact_blob }}</div>
+    {% else %}
+      <div>No owner linked.</div>
+    {% endif %}
+  </div>
+
+  <div style="flex:1 1 320px; background:#fff; padding:16px; border:1px solid #e5e7eb;">
+    <h3>Clinical Snapshot</h3>
+    <div><strong>Last Visit:</strong>
+      {% if last_visit %}{{ last_visit.appointment_date }} {{ last_visit.start_time }}{% else %}—{% endif %}
+    </div>
+    <div><strong>Next Appointment:</strong>
+      {% if next_appt %}{{ next_appt.appointment_date }} {{ next_appt.start_time }}{% else %}—{% endif %}
+    </div>
+    <div><strong>Vaccination Status:</strong> Not tracked yet</div>
+    <div><strong>Alerts:</strong> {{ pet.alerts }}</div>
+  </div>
+</div>
+
+<div style="margin-top:16px; display:flex; gap:8px;">
+  <a class="btn" href="/appointments?pet_id={{ pet.id }}">View Appointments</a>
+  <a class="btn" href="/medical-records?pet_id={{ pet.id }}">View Medical Records</a>
+  <a class="btn" href="/invoices?pet_id={{ pet.id }}">View Invoices</a>
+  <a class="btn btn-secondary" href="/pets/{{ pet.id }}/edit">Edit Pet</a>
+</div>
+{% endblock %}

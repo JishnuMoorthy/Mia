@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Clinics</h2>
+<div class="top-actions"><a class="btn" href="/clinics/new">New Clinic</a></div>
+<table>
+  <tr><th>Name</th><th>Phone</th><th>City</th><th>State</th><th>Actions</th></tr>
+  {% for clinic in clinics %}
+  <tr>
+    <td>{{ clinic.name }}</td>
+    <td>{{ clinic.phone }}</td>
+    <td>{{ clinic.city }}</td>
+    <td>{{ clinic.state }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/clinics/{{ clinic.id }}/edit">Edit</a>
+      <form method="post" action="/clinics/{{ clinic.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

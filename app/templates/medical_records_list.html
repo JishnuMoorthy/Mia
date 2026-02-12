@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Medical Records</h2>
+<div class="top-actions"><a class="btn" href="/medical-records/new">New Record</a></div>
+<table>
+  <tr><th>Visit Date</th><th>Pet</th><th>Vet</th><th>Diagnosis</th><th>Actions</th></tr>
+  {% for record in records %}
+  <tr>
+    <td>{{ record.visit_date }}</td>
+    <td>{{ pet_map[record.pet_id].name if pet_map.get(record.pet_id) }}</td>
+    <td>{{ vet_map[record.vet_id].name if vet_map.get(record.vet_id) }}</td>
+    <td>{{ record.diagnosis }}</td>
+    <td class="actions">
+      <a class="btn-secondary btn" href="/medical-records/{{ record.id }}/edit">Edit</a>
+      <form method="post" action="/medical-records/{{ record.id }}/delete">
+        <button class="btn-danger" type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
